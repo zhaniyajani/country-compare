@@ -1,0 +1,5 @@
+body { margin: 0; font-family: Arial, sans-serif; background: #f4f6f8; }
+header { background: #1f4e79; color: white; padding: 16px; }
+header a { color: white; }
+main { max-width: 800px; margin: 20px auto; padding: 0 16px; }
+footer { text-align: center; color: #666; padding: 16px; }
