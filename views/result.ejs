@@ -1,0 +1,68 @@
+<%- include('partials/header') %>
+
+<h1><%= info.name %>: <%= c1.name %> vs <%= c2.name %></h1>
+<p class="muted">Years <%= fromYear %> to <%= toYear %> | Unit: <%= info.unit %></p>
+
+<% if (!stats1 && !stats2) { %>
+
+  <div class="card">
+    <p>No data found for these countries and years. Try another indicator or a different year range.</p>
+    <a href="/">Try again</a>
+  </div>
+
+<% } else { %>
+
+  <% if (summary) { %>
+    <div class="highlight"><%= summary %></div>
+  <% } %>
+
+  <div class="grid">
+    <% [ { c: c1, s: stats1 }, { c: c2, s: stats2 } ].forEach(function(item) { %>
+      <div class="card">
+        <h2><%= item.c.name %></h2>
+        <p class="muted">
+          Capital: <%= item.c.capital || 'n/a' %><br>
+          Region: <%= item.c.region %><br>
+          Income: <%= item.c.income %>
+        </p>
+        <% if (item.s) { %>
+          <ul>
+            <li>Average: <strong><%= format(item.s.average) %></strong></li>
+            <li>Highest: <%= format(item.s.highest.value) %> (<%= item.s.highest.year %>)</li>
+            <li>Lowest: <%= format(item.s.lowest.value) %> (<%= item.s.lowest.year %>)</li>
+            <li>Growth: <%= item.s.growth === null ? 'n/a' : item.s.growth.toFixed(1) + '%' %></li>
+          </ul>
+        <% } else { %>
+          <p>No data for this country in these years.</p>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+
+  <h2>Year by year</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th><%= c1.name %></th>
+          <th><%= c2.name %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.forEach(function(r) { %>
+          <tr>
+            <td><%= r.year %></td>
+            <td><%= r.v1 === null ? '-' : format(r.v1) %></td>
+            <td><%= r.v2 === null ? '-' : format(r.v2) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <p><a href="/">Make another comparison</a></p>
+
+<% } %>
+
+<%- include('partials/footer') %>

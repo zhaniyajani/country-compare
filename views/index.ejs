@@ -1,0 +1,54 @@
+<%- include('partials/header') %>
+
+<h1>Compare two countries</h1>
+
+<% if (errors.length > 0) { %>
+  <div class="error-box">
+    <ul>
+      <% errors.forEach(function(e) { %>
+        <li><%= e %></li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>
+
+<form action="/compare" method="POST" class="card">
+
+  <label for="country1">Country 1</label>
+  <select id="country1" name="country1">
+    <option value="">-- choose a country --</option>
+    <% countries.forEach(function(c) { %>
+      <option value="<%= c.code %>" <%= form.country1 === c.code ? 'selected' : '' %>><%= c.name %></option>
+    <% }) %>
+  </select>
+
+  <label for="country2">Country 2</label>
+  <select id="country2" name="country2">
+    <option value="">-- choose a country --</option>
+    <% countries.forEach(function(c) { %>
+      <option value="<%= c.code %>" <%= form.country2 === c.code ? 'selected' : '' %>><%= c.name %></option>
+    <% }) %>
+  </select>
+
+  <label for="indicator">Indicator</label>
+  <select id="indicator" name="indicator">
+    <% Object.keys(indicators).forEach(function(key) { %>
+      <option value="<%= key %>" <%= form.indicator === key ? 'selected' : '' %>><%= indicators[key].name %></option>
+    <% }) %>
+  </select>
+
+  <div class="years">
+    <div>
+      <label for="fromYear">From year</label>
+      <input type="number" id="fromYear" name="fromYear" value="<%= form.fromYear || 2000 %>">
+    </div>
+    <div>
+      <label for="toYear">To year</label>
+      <input type="number" id="toYear" name="toYear" value="<%= form.toYear || 2022 %>">
+    </div>
+  </div>
+
+  <button type="submit">Compare</button>
+</form>
+
+<%- include('partials/footer') %>
