@@ -3,13 +3,11 @@
 <h1><%= info.name %>: <%= c1.name %> vs <%= c2.name %></h1>
 <p class="muted">Years <%= fromYear %> to <%= toYear %> | Unit: <%= info.unit %></p>
 
-<% if (!stats1 && !stats2) { %>
-
+<% if (rows.length === 0) { %>
   <div class="card">
-    <p>No data found for these countries and years. Try another indicator or a different year range.</p>
+    <p>No data found. Try another indicator or different years.</p>
     <a href="/">Try again</a>
   </div>
-
 <% } else { %>
 
   <% if (summary) { %>
@@ -17,51 +15,69 @@
   <% } %>
 
   <div class="grid">
-    <% [ { c: c1, s: stats1 }, { c: c2, s: stats2 } ].forEach(function(item) { %>
+    <% [[c1, stats1], [c2, stats2]].forEach(function (pair) { %>
       <div class="card">
-        <h2><%= item.c.name %></h2>
-        <p class="muted">
-          Capital: <%= item.c.capital || 'n/a' %><br>
-          Region: <%= item.c.region %><br>
-          Income: <%= item.c.income %>
-        </p>
-        <% if (item.s) { %>
+        <h2><%= pair[0].name %></h2>
+        <p class="muted">Capital: <%= pair[0].capital || 'n/a' %></p>
+        <% if (pair[1]) { %>
           <ul>
-            <li>Average: <strong><%= format(item.s.average) %></strong></li>
-            <li>Highest: <%= format(item.s.highest.value) %> (<%= item.s.highest.year %>)</li>
-            <li>Lowest: <%= format(item.s.lowest.value) %> (<%= item.s.lowest.year %>)</li>
-            <li>Growth: <%= item.s.growth === null ? 'n/a' : item.s.growth.toFixed(1) + '%' %></li>
+            <li>Average: <strong><%= format(pair[1].average) %></strong></li>
+            <li>Highest: <%= format(pair[1].highest.value) %> (<%= pair[1].highest.year %>)</li>
+            <li>Lowest: <%= format(pair[1].lowest.value) %> (<%= pair[1].lowest.year %>)</li>
+            <% if (pair[1].growth !== null) { %>
+              <li>Growth: <%= pair[1].growth.toFixed(1) %>%</li>
+            <% } %>
           </ul>
         <% } else { %>
-          <p>No data for this country in these years.</p>
+          <p>No data for these years.</p>
         <% } %>
+        <a href="/country/<%= pair[0].code %>">More about <%= pair[0].name %></a>
       </div>
     <% }) %>
+  </div>
+
+  <h2>Chart</h2>
+  <div class="card chart-box">
+    <canvas id="myChart"></canvas>
   </div>
 
   <h2>Year by year</h2>
   <div class="table-wrap">
     <table>
-      <thead>
+      <tr><th>Year</th><th><%= c1.name %></th><th><%= c2.name %></th></tr>
+      <% rows.forEach(function (r) { %>
         <tr>
-          <th>Year</th>
-          <th><%= c1.name %></th>
-          <th><%= c2.name %></th>
+          <td><%= r.year %></td>
+          <td><%= r.v1 === null ? '-' : format(r.v1) %></td>
+          <td><%= r.v2 === null ? '-' : format(r.v2) %></td>
         </tr>
-      </thead>
-      <tbody>
-        <% rows.forEach(function(r) { %>
-          <tr>
-            <td><%= r.year %></td>
-            <td><%= r.v1 === null ? '-' : format(r.v1) %></td>
-            <td><%= r.v2 === null ? '-' : format(r.v2) %></td>
-          </tr>
-        <% }) %>
-      </tbody>
+      <% }) %>
     </table>
   </div>
 
   <p><a href="/">Make another comparison</a></p>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    var rows = <%- JSON.stringify(rows) %>;
+    var labels = [], values1 = [], values2 = [];
+    for (var i = 0; i < rows.length; i++) {
+      labels.push(rows[i].year);
+      values1.push(rows[i].v1);
+      values2.push(rows[i].v2);
+    }
+    new Chart(document.getElementById('myChart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: <%- JSON.stringify(c1.name) %>, data: values1, borderColor: '#1f4e79', spanGaps: true },
+          { label: <%- JSON.stringify(c2.name) %>, data: values2, borderColor: '#e07b00', spanGaps: true }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  </script>
 
 <% } %>
 

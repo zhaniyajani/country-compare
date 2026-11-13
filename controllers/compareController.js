@@ -1,55 +1,48 @@
-const {
-  getIndicator,
-  getCountryDetails
-} = require('../services/worldBankService');
+const { getIndicator, getCountryDetails } = require('../services/worldBankService');
 const { INDICATORS } = require('../config/indicators');
+const formatNumber = require('../utils/formatNumber');
 
-// Makes big numbers easy to read: 19600000 -> 19.60M
-function formatNumber(n) {
-  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  return n.toLocaleString('en-US', { maximumFractionDigits: 1 });
-}
-
-// Calculates average, highest, lowest and growth for one country
 function calcStats(data) {
   if (data.length === 0) return null;
-
-  const sum = data.reduce((total, d) => total + d.value, 0);
-  const highest = data.reduce((best, d) => (d.value > best.value ? d : best));
-  const lowest = data.reduce((worst, d) => (d.value < worst.value ? d : worst));
-  const first = data[0];
-  const last = data[data.length - 1];
-  const growth = first.value !== 0
-    ? ((last.value - first.value) / first.value) * 100
-    : null;
-
-  return { average: sum / data.length, highest, lowest, growth };
+  let sum = 0;
+  let highest = data[0];
+  let lowest = data[0];
+  for (let i = 0; i < data.length; i++) {
+    sum = sum + data[i].value;
+    if (data[i].value > highest.value) highest = data[i];
+    if (data[i].value < lowest.value) lowest = data[i];
+  }
+  const first = data[0].value;
+  const last = data[data.length - 1].value;
+  const growth = first !== 0 ? ((last - first) / first) * 100 : null;
+  return { average: sum / data.length, highest: highest, lowest: lowest, growth: growth };
 }
 
-// POST /compare: data is already checked, so go to the result page
-exports.handleCompare = (req, res) => {
-  const query = new URLSearchParams(req.compareInput);
-  res.redirect(`/result?${query}`);
+function findValue(data, year) {
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].year === year) return data[i].value;
+  }
+  return null;
+}
+
+exports.handleCompare = function (req, res) {
+  const i = req.compareInput;
+  res.redirect('/result?country1=' + i.country1 + '&country2=' + i.country2 +
+    '&indicator=' + i.indicator + '&fromYear=' + i.fromYear + '&toYear=' + i.toYear);
 };
 
-// GET /result: call the API and show the comparison
-exports.showResult = async (req, res, next) => {
+exports.showResult = async function (req, res, next) {
   try {
-    const { country1, country2, indicator, fromYear, toYear } = req.compareInput;
-    const info = INDICATORS[indicator];
+    const i = req.compareInput;
+    const info = INDICATORS[i.indicator];
 
-    // Send all four requests at the same time
-    const [c1, c2, data1, data2] = await Promise.all([
-      getCountryDetails(country1),
-      getCountryDetails(country2),
-      getIndicator(country1, indicator, fromYear, toYear),
-      getIndicator(country2, indicator, fromYear, toYear)
-    ]);
+    const c1 = await getCountryDetails(i.country1);
+    const c2 = await getCountryDetails(i.country2);
+    const data1 = await getIndicator(i.country1, i.indicator, i.fromYear, i.toYear);
+    const data2 = await getIndicator(i.country2, i.indicator, i.fromYear, i.toYear);
 
-    // Wrong country code
     if (!c1 || !c2) {
-      const error = new Error('One of the countries was not found. Please choose from the list.');
+      const error = new Error('One of the countries was not found.');
       error.isUserMessage = true;
       error.statusCode = 404;
       throw error;
@@ -58,29 +51,24 @@ exports.showResult = async (req, res, next) => {
     const stats1 = calcStats(data1);
     const stats2 = calcStats(data2);
 
-    // Who is ahead (by average)?
     let summary = null;
     if (stats1 && stats2) {
       const winner = stats1.average >= stats2.average ? c1.name : c2.name;
-      const diff = Math.abs(stats1.average - stats2.average);
-      summary = `${winner} is ahead on average by ${formatNumber(diff)} ${info.unit}.`;
+      const difference = Math.abs(stats1.average - stats2.average);
+      summary = winner + ' is ahead on average by ' + formatNumber(difference) + ' ' + info.unit + '.';
     }
 
-    // Table rows: one row per year, with both countries
-    const years = [...new Set([...data1, ...data2].map(d => d.year))]
-      .sort((a, b) => a - b);
-    const rows = years.map(year => {
-      const a = data1.find(d => d.year === year);
-      const b = data2.find(d => d.year === year);
-      return { year, v1: a ? a.value : null, v2: b ? b.value : null };
-    });
+    const rows = [];
+    for (let year = i.fromYear; year <= i.toYear; year++) {
+      const v1 = findValue(data1, year);
+      const v2 = findValue(data2, year);
+      if (v1 !== null || v2 !== null) rows.push({ year: year, v1: v1, v2: v2 });
+    }
 
     res.render('result', {
-      title: 'Result',
-      info, fromYear, toYear,
-      c1, c2, stats1, stats2,
-      summary, rows,
-      format: formatNumber
+      title: 'Result', info: info, fromYear: i.fromYear, toYear: i.toYear,
+      c1: c1, c2: c2, stats1: stats1, stats2: stats2,
+      summary: summary, rows: rows, format: formatNumber
     });
   } catch (err) {
     next(err);

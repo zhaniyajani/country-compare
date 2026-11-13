@@ -1,53 +1,45 @@
 const axios = require('axios');
-
 const BASE_URL = 'https://api.worldbank.org/v2';
 
-// Request 1: list of countries for the dropdowns
 async function getCountries() {
-  const response = await axios.get(`${BASE_URL}/country`, {
+  const response = await axios.get(BASE_URL + '/country', {
     params: { format: 'json', per_page: 300 },
     timeout: 8000
   });
-
-  const countries = response.data[1];
-  if (!countries) return [];
-
-  return countries
-    .filter(c => c.region.value !== 'Aggregates') // remove "World", "Euro area"
-    .map(c => ({ code: c.id, name: c.name }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-}
-
-// Request 2: yearly values of an indicator for one country
-async function getIndicator(countryCode, indicator, fromYear, toYear) {
-  const response = await axios.get(
-    `${BASE_URL}/country/${countryCode}/indicator/${indicator}`,
-    {
-      params: { format: 'json', date: `${fromYear}:${toYear}`, per_page: 100 },
-      timeout: 8000
+  const list = response.data[1] || [];
+  const countries = [];
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].region.value !== 'Aggregates') {
+      countries.push({ code: list[i].id, name: list[i].name });
     }
-  );
-
-  const rows = response.data[1];
-  if (!rows) return []; // no data
-
-  return rows
-    .filter(r => r.value !== null)               // remove empty values
-    .map(r => ({ year: Number(r.date), value: r.value }))
-    .sort((a, b) => a.year - b.year);
+  }
+  countries.sort(function (a, b) { return a.name.localeCompare(b.name); });
+  return countries;
 }
 
-// Request 3: details of one country (name, capital, region, income)
+async function getIndicator(code, indicator, fromYear, toYear) {
+  const response = await axios.get(BASE_URL + '/country/' + code + '/indicator/' + indicator, {
+    params: { format: 'json', date: fromYear + ':' + toYear, per_page: 100 },
+    timeout: 8000
+  });
+  const rows = response.data[1] || [];
+  const result = [];
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i].value !== null) {
+      result.push({ year: Number(rows[i].date), value: rows[i].value });
+    }
+  }
+  result.sort(function (a, b) { return a.year - b.year; });
+  return result;
+}
+
 async function getCountryDetails(code) {
-  const response = await axios.get(`${BASE_URL}/country/${code}`, {
+  const response = await axios.get(BASE_URL + '/country/' + code, {
     params: { format: 'json' },
     timeout: 8000
   });
-
-  // For a wrong code the API answers 200 with a message, so data[1] is missing
-  const c = response.data[1] && response.data[1][0];
-  if (!c) return null;
-
+  if (!response.data[1]) return null;
+  const c = response.data[1][0];
   return {
     code: c.id,
     name: c.name,

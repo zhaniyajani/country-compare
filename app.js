@@ -13,14 +13,13 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
-
 app.use(logger);
 
 app.use('/', require('./routes/index'));
 
-app.use(notFound);     
-app.use(errorHandler); 
+app.use(notFound);
+app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+app.listen(PORT, function () {
+  console.log('Server running at http://localhost:' + PORT);
 });
