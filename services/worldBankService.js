@@ -1,5 +1,5 @@
 const axios = require('axios');
-const BASE_URL = 'https://api.worldbank.org/v2';
+const BASE_URL = process.env.API_URL || 'https://api.worldbank.org/v2';
 
 async function getCountries() {
   const response = await axios.get(BASE_URL + '/country', {
