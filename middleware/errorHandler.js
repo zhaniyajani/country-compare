@@ -1,5 +1,5 @@
 module.exports = function (err, req, res, next) {
-  console.error('Error:', err.message);
+  console.error('Error:', err.message, err.config ? err.config.url : '');
 
   let status = 500;
   let message = 'Something went wrong. Please try again later.';

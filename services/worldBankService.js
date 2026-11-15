@@ -1,10 +1,14 @@
 const axios = require('axios');
 const BASE_URL = process.env.API_URL || 'https://api.worldbank.org/v2';
+const TIMEOUT = 20000;
+let savedCountries = null;
 
 async function getCountries() {
+  if (savedCountries) return savedCountries;
+
   const response = await axios.get(BASE_URL + '/country', {
     params: { format: 'json', per_page: 300 },
-    timeout: 8000
+    timeout: TIMEOUT
   });
   const list = response.data[1] || [];
   const countries = [];
@@ -14,13 +18,15 @@ async function getCountries() {
     }
   }
   countries.sort(function (a, b) { return a.name.localeCompare(b.name); });
+
+  savedCountries = countries;
   return countries;
 }
 
 async function getIndicator(code, indicator, fromYear, toYear) {
   const response = await axios.get(BASE_URL + '/country/' + code + '/indicator/' + indicator, {
     params: { format: 'json', date: fromYear + ':' + toYear, per_page: 100 },
-    timeout: 8000
+    timeout: TIMEOUT
   });
   const rows = response.data[1] || [];
   const result = [];
@@ -36,7 +42,7 @@ async function getIndicator(code, indicator, fromYear, toYear) {
 async function getCountryDetails(code) {
   const response = await axios.get(BASE_URL + '/country/' + code, {
     params: { format: 'json' },
-    timeout: 8000
+    timeout: TIMEOUT
   });
   if (!response.data[1]) return null;
   const c = response.data[1][0];
