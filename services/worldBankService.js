@@ -29,6 +29,7 @@ const RETRY_PAUSE = process.env.RETRY_PAUSE ? Number(process.env.RETRY_PAUSE) : 
 async function getData(url, params) {
   // the key identifies a request: the address plus its parameters as text
   // JSON.stringify turns an object into text: { a: 1 } becomes '{"a":1}'
+  const key = url + JSON.stringify(params);
   // If the notebook already has this key, return the saved answer at once and do NOT call the API
   if (saved[key]) {
     return saved[key];
