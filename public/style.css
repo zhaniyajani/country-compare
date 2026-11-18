@@ -1,123 +1,123 @@
+/* style.css : the design of all pages. express.static sends it to the browser */
+
 :root {
-  --blue: #1f4e79;
-  --blue-dark: #163a5a;
-  --orange: #e07b00;
-  --bg: #eef2f7;
-  --text: #1f2933;
-  --gray: #6b7785;
+  --ink: #1c1917;        /* main text and dark buttons */
+  --paper: #faf7f2;      /* page background (warm off-white) */
+  --line: #ddd6cc;       /* thin borders */
+  --accent: #b4451f;     /* terracotta, used for links and highlights */
+  --accent-2: #2f5d62;   /* dark teal, the second country */
+  --gray: #7a7268;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
 }
 
+/* ----- header: plain, with one thin line under it ----- */
 .site-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 16px 24px;
-  background: linear-gradient(90deg, var(--blue-dark), var(--blue));
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 16px 14px;
+  border-bottom: 2px solid var(--ink);
 }
-.site-header a { color: white; text-decoration: none; }
-.site-header .logo { font-size: 1.4rem; font-weight: bold; }
-.site-header nav a { margin-left: 8px; padding: 6px 12px; border-radius: 6px; }
-.site-header nav a:hover { background: rgba(255, 255, 255, 0.2); }
+.site-header a { color: var(--ink); text-decoration: none; }
+.site-header .logo { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; font-weight: bold; }
+.site-header nav a { margin-left: 20px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; }
+.site-header nav a:hover { color: var(--accent); }
 
-main { max-width: 900px; margin: 28px auto; padding: 0 16px; }
-h1 { color: var(--blue); margin-bottom: 8px; }
-h2 { color: var(--blue); }
-a { color: var(--blue); }
+/* ----- page content ----- */
+main { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+h1, h2 { font-family: Georgia, "Times New Roman", serif; font-weight: normal; }
+h1 { font-size: 2.2rem; margin: 0 0 8px; }
+h2 { font-size: 1.4rem; margin: 32px 0 12px; }
+a { color: var(--accent); }
 .muted { color: var(--gray); font-size: 0.95rem; }
 .center { text-align: center; }
 ul { padding-left: 20px; }
 
+/* ----- cards: flat boxes with a thin border, no shadow ----- */
 .card {
   background: white;
   padding: 22px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--line);
+  border-radius: 2px;
   margin-bottom: 20px;
 }
 .card h2 { margin-top: 0; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.grid .card { border-top: 4px solid var(--blue); }
-.grid .card:nth-child(2) { border-top-color: var(--orange); }
+.grid .card { border-top: 4px solid var(--accent); }
+.grid .card:nth-child(2) { border-top-color: var(--accent-2); }   /* second country */
 
-label { display: block; margin: 14px 0 6px; font-weight: bold; }
+/* ----- form ----- */
+label { display: block; margin: 16px 0 6px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gray); }
 select, input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #c5cdd6;
-  border-radius: 6px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
   font-size: 1rem;
-  background: white;
+  background: var(--paper);
+  color: var(--ink);
 }
-select:focus, input:focus {
-  outline: none;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(31, 78, 121, 0.2);
-}
+select:focus, input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
 .years { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 button {
-  margin-top: 22px;
-  padding: 12px 28px;
-  background: var(--blue);
+  margin-top: 24px;
+  padding: 12px 32px;
+  background: var(--ink);
   color: white;
   border: 0;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: bold;
+  border-radius: 2px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
 }
-button:hover { background: var(--blue-dark); }
+button:hover { background: var(--accent); }
 
+/* ----- messages ----- */
 .error-box {
-  background: #fdecea;
-  border-left: 5px solid #d64533;
-  color: #8a1c10;
+  border: 1px solid var(--accent);
+  border-left: 6px solid var(--accent);
+  background: #fbefe9;
   padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 .error-box ul { margin: 0; }
 .highlight {
-  background: #e6f4e4;
-  border-left: 5px solid #3c9a3c;
-  padding: 14px 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-weight: bold;
+  border-left: 6px solid var(--accent-2);
+  background: #eaf0f0;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
 }
-.card.center h1 { font-size: 4rem; margin: 0; }
+.card.center h1 { font-size: 4.5rem; }   /* the big 404 / 500 number */
 
+/* ----- chart and table ----- */
 .chart-box { height: 360px; position: relative; }
-.table-wrap {
-  overflow-x: auto;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 20px;
-}
+.table-wrap { overflow-x: auto; margin-bottom: 20px; }   /* a wide table scrolls sideways */
 table { width: 100%; border-collapse: collapse; }
-th, td { padding: 10px 14px; text-align: left; }
-th { background: var(--blue); color: white; }
-tr:nth-child(even) td { background: #f5f8fb; }
-tr:hover td { background: #e8f0f8; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
 
-footer { text-align: center; color: var(--gray); padding: 24px 16px; }
+footer { max-width: 900px; margin: 40px auto 0; padding: 16px; border-top: 1px solid var(--line); color: var(--gray); font-size: 0.9rem; }
 
+/* ----- phone layout: only when the screen is 600px wide or narrower ----- */
 @media (max-width: 600px) {
   .grid, .years { grid-template-columns: 1fr; }
-  .site-header { padding: 12px 16px; }
+  h1 { font-size: 1.7rem; }
   .chart-box { height: 280px; }
   button { width: 100%; }
 }

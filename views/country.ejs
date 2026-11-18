@@ -1,0 +1,52 @@
+<!-- views/country.ejs : details of one country -->
+ <!-- Data it needs (sent by countryController.showCountry):
+    country = ONE object with the fields name, code, capital, region and income
+    latest  = a LIST of 4 objects, one per indicator. Each has name, unit, value and year.
+ Structure of the page:
+    1) the top part comes from partials/header.ejs
+    2) the heading and a card with the facts about the country
+    3) a table: one row for each indicator
+    4) a link back to the home page
+    5) the bottom part comes from partials/footer.ejs  -->
+
+
+<!-- include the top part of the page (header.ejs) -->
+<%- include('partials/header') %>
+
+<!-- display a property -->
+<h1><%= country.name %></h1> 
+
+<div class="card">
+  <ul>
+    <li>Code: <strong><%= country.code %></strong></li>
+    <!-- if the capital is empty, show n/a instead -->
+    <li>Capital: <strong><%= country.capital || 'n/a' %></strong></li>
+    <li>Region: <strong><%= country.region %></strong></li>
+    <li>Income level: <strong><%= country.income %></strong></li>
+  </ul>
+</div>
+
+<h2>Latest available data</h2>
+<!-- table-wrap = a block around the table. style.css lets it scroll sideways on a small phone screen, so a wide table does not break the page. -->
+<div class="table-wrap">
+  <table>
+    <tr><th>Indicator</th><th>Value</th><th>Year</th></tr>
+    <!-- forEach repeats the block once for every item of the list  -->
+    <% latest.forEach(function (item) { %>
+      <tr>
+        <td><%= item.name %></td>
+        <% /* conditional: show the value if we have one, otherwise a no data message */ %> 
+        <% if (item.value !== null) { %>
+          <td><%= item.value %> (<%= item.unit %>)</td>
+          <td><%= item.year %></td>
+        <% } else { %>
+          <td colspan="2">No recent data</td>
+        <% } %>
+      </tr>
+    <% }) %> 
+  </table>
+</div>
+
+<p><a href="/">Back to home</a></p>
+
+<%- include('partials/footer') %>

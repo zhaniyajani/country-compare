@@ -1,46 +1,67 @@
+<%# views/result.ejs : the result of the comparison 
+
+    What this file does / Что делает этот файл:
+    It shows the comparison: a heading, a summary box, one card with statistics for each country, a line chart and a table with the values year by year.
+-%>
+<%# paste the top part of the page here (opens html, head, body, main)-%>
 <%- include('partials/header') %>
-
+ 
 <h1><%= info.name %>: <%= c1.name %> vs <%= c2.name %></h1>
+<%# class="muted" = a name that style.css uses for grey, smaller text. The vertical bar here is only a text sign %>
 <p class="muted">Years <%= fromYear %> to <%= toYear %> | Unit: <%= info.unit %></p>
-
+ 
+<%# no results state: no rows means the API had no values for these years
+    rows.length = how many items are in the list. === compares value AND type. 0 = the list is empty %>
 <% if (rows.length === 0) { %>
   <div class="card">
     <p>No data found. Try another indicator or different years.</p>
     <a href="/">Try again</a>
   </div>
 <% } else { %>
-
+ 
+  <%# the green summary box, only when both countries have data
+      if (summary) is true when summary is a text. The value null counts as false, so the box is skipped %>
   <% if (summary) { %>
     <div class="highlight"><%= summary %></div>
   <% } %>
-
+ 
+  <%# one loop makes the card of each country
+      class="grid" = two columns on a big screen, one column on a phone (see style.css) %>
   <div class="grid">
-    <% [[c1, stats1], [c2, stats2]].forEach(function (pair) { %>
+    <% cards.forEach(function (card) { %>
       <div class="card">
-        <h2><%= pair[0].name %></h2>
-        <p class="muted">Capital: <%= pair[0].capital || 'n/a' %></p>
-        <% if (pair[1]) { %>
+        <h2><%= card.country.name %></h2>
+        <p class="muted">Capital: <%= card.country.capital || 'n/a' %></p>
+        <%# card.stats is null when this country has no data in these years (see calcStats) %>
+        <% if (card.stats) { %>
           <ul>
-            <li>Average: <strong><%= format(pair[1].average) %></strong></li>
-            <li>Highest: <%= format(pair[1].highest.value) %> (<%= pair[1].highest.year %>)</li>
-            <li>Lowest: <%= format(pair[1].lowest.value) %> (<%= pair[1].lowest.year %>)</li>
-            <% if (pair[1].growth !== null) { %>
-              <li>Growth: <%= pair[1].growth.toFixed(1) %>%</li>
+            <%# format is the formatNumber function sent by the controller %>
+            <li>Average: <strong><%= format(card.stats.average) %></strong></li>
+            <%# highest and lowest are objects with value and year, so we show both%>
+            <li>Highest: <%= format(card.stats.highest.value) %> (<%= card.stats.highest.year %>)</li>
+            <li>Lowest: <%= format(card.stats.lowest.value) %> (<%= card.stats.lowest.year %>)</li>
+            <%# growth is null when the first value was 0 (we cannot divide by 0). !== means NOT equal in value and type.
+                toFixed(1) keeps 1 digit after the dot: 12.3456 becomes 12.3%>
+            <% if (card.stats.growth !== null) { %>
+              <li>Growth: <%= card.stats.growth.toFixed(1) %>%</li>
             <% } %>
           </ul>
         <% } else { %>
-          <p>No data for these years.</p>
+          <p>No data for this country in these years.</p>
         <% } %>
-        <a href="/country/<%= pair[0].code %>">More about <%= pair[0].name %></a>
+
+        <a href="/country/<%= card.country.code %>">More about <%= card.country.name %></a>
       </div>
     <% }) %>
   </div>
-
+ 
+  <%# The chart. canvas = an empty drawing area. The script below finds it by id="myChart" and draws on it.
+      class="chart-box" gives the box a fixed height in style.css, which the chart needs to fit in %>
   <h2>Chart</h2>
   <div class="card chart-box">
     <canvas id="myChart"></canvas>
   </div>
-
+ 
   <h2>Year by year</h2>
   <div class="table-wrap">
     <table>
@@ -48,37 +69,61 @@
       <% rows.forEach(function (r) { %>
         <tr>
           <td><%= r.year %></td>
+          <%# a missing value is shown as a dash
+              a ? b : c = if a is true take b, otherwise c. So: if the value is null show a dash, else format the number %>
           <td><%= r.v1 === null ? '-' : format(r.v1) %></td>
           <td><%= r.v2 === null ? '-' : format(r.v2) %></td>
         </tr>
       <% }) %>
     </table>
   </div>
-
+ 
   <p><a href="/">Make another comparison</a></p>
-
+ 
+  <%# Chart.js is a library for drawing charts. It is loaded from a CDN, a public server
+      The browser downloads it, so the chart needs internet. Without internet the page still works, only the chart is missing %>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
+    // This JavaScript runs in the BROWSER. The server prints the list of rows here as JSON text
+    // The next line has the raw output tag with a minus sign. JSON.stringify turns the list into text that JavaScript understands.
+    // We use the raw tag here, because the safe tag would change the quotes into other signs and break the code
+    // After the server finishes, the browser gets a plain line like: var rows = [{"year":2010,"v1":1,"v2":2}];
     var rows = <%- JSON.stringify(rows) %>;
-    var labels = [], values1 = [], values2 = [];
+ 
+    // split the rows into three lists for the chart
+    // labels = the years (the bottom axis), values1 = values of country 1, values2 = values of country 2
+    var labels = [];
+    var values1 = [];
+    var values2 = [];
     for (var i = 0; i < rows.length; i++) {
       labels.push(rows[i].year);
       values1.push(rows[i].v1);
       values2.push(rows[i].v2);
     }
-    new Chart(document.getElementById('myChart'), {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          { label: <%- JSON.stringify(c1.name) %>, data: values1, borderColor: '#1f4e79', spanGaps: true },
-          { label: <%- JSON.stringify(c2.name) %>, data: values2, borderColor: '#e07b00', spanGaps: true }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false }
-    });
+ 
+    // draw the chart only if the Chart.js library loaded (it needs internet)
+    // typeof Chart gives the text 'undefined' when there is no such name
+    if (typeof Chart !== 'undefined') {
+      // new Chart(where, settings) = create a chart. document.getElementById('myChart') finds the canvas above
+      new Chart(document.getElementById('myChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            // one line for each country: label = the name in the legend, data = the values, borderColor = the colour of the line
+            // The country name goes through JSON.stringify, so it becomes a correct text in quotes, even with an apostrophe
+            { label: <%- JSON.stringify(c1.name) %>, data: values1, borderColor: '#b4451f', spanGaps: true },
+            { label: <%- JSON.stringify(c2.name) %>, data: values2, borderColor: '#2f5d62', spanGaps: true }
+          ]
+        },
+        // spanGaps соединяет линию через годы, у которых нет значения
+        // responsive: true = the chart fits the width. maintainAspectRatio: false = it uses the height of the box (chart-box)
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
   </script>
-
+ 
 <% } %>
-
+ 
 <%- include('partials/footer') %>
+ 

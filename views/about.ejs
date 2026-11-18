@@ -1,0 +1,24 @@
+<!-- views/about.ejs: page with information about the app that needs no data from the server -->
+
+<h1>About Country Compare</h1>
+
+<div class="card">
+  <p>Country Compare lets you compare two countries using real data from the World Bank.</p>
+
+  <h2>How to use it</h2>
+  <ol>
+    <li>Choose two different countries.</li>
+    <li>Choose an indicator: GDP per capita, population, life expectancy or internet users.</li>
+    <li>Choose a range of years and click Compare.</li>
+  </ol>
+
+  <h2>Data source</h2>
+  <p>
+    World Bank Indicators API:
+    <a href="https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation" target="_blank" rel="noopener">API documentation</a>.
+    Some years have no data, so the app skips empty values.
+  </p>
+
+  <h2>Built with</h2>
+  <p>Node.js, Express, Axios and EJS.</p>
+</div>
